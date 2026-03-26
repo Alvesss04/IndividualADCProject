@@ -31,7 +31,7 @@ public class CreateAccountResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createAccount(String body) {
 
-        OperationRequest request = OperationRequest.fromJson(body);        // check the wrapper and input arrived
+        OperationRequest request = OperationRequest.fromJson(body);
         if (request == null || request.input == null) {
             return buildError(ErrorCode.INVALID_INPUT);
         }
