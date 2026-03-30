@@ -36,10 +36,8 @@ public class CreateAccountResource {
             return buildError(ErrorCode.INVALID_INPUT);
         }
 
-        // parse the "input" JsonObject into our CreateAccountData class
         CreateAccountData data = g.fromJson(request.input, CreateAccountData.class);
 
-        // validate all fields
         if (!data.isValid()) {
             return buildError(ErrorCode.INVALID_INPUT);
         }
@@ -47,7 +45,6 @@ public class CreateAccountResource {
         LOG.fine("Attempting to create account for: " + data.username);
 
         Transaction txn = datastore.newTransaction();
-
         try {
             // username (email format) is the unique key in Datastore
             Key userKey = datastore.newKeyFactory().setKind("User").newKey(data.username);
