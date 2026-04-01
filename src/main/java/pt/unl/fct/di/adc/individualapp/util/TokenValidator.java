@@ -25,7 +25,6 @@ public class TokenValidator {
 
     public static TokenValidator validate(JsonObject tokenJson, Datastore datastore) {
 
-        // 1. basic shape check
         if (tokenJson == null || !tokenJson.has("tokenId")) {
             return new TokenValidator(Status.INVALID, null, null, ErrorCode.INVALID_TOKEN);
         }

@@ -14,7 +14,7 @@ import pt.unl.fct.di.adc.individualapp.util.exceptions.ErrorCode;
 import java.util.logging.Logger;
 
 @Path("/showauthsessions")
-@Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
+@Produces(MediaType.APPLICATION_JSON)
 public class ShowAuthSessionsResource extends BaseResource {
 
     private static final Logger LOG = Logger.getLogger(ShowAuthSessionsResource.class.getName());
@@ -49,7 +49,6 @@ public class ShowAuthSessionsResource extends BaseResource {
 
         QueryResults<Entity> results = datastore.run(query);
 
-        // 4. build the sessions array
         JsonArray sessionsArray = new JsonArray();
         while (results.hasNext()) {
             Entity token = results.next();

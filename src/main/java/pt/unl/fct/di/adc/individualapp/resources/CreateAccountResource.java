@@ -14,7 +14,7 @@ import pt.unl.fct.di.adc.individualapp.util.exceptions.ErrorCode;
 import java.util.logging.Logger;
 
 @Path("/createaccount")
-@Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
+@Produces(MediaType.APPLICATION_JSON)
 public class CreateAccountResource extends BaseResource {
 
     private static final Logger LOG = Logger.getLogger(CreateAccountResource.class.getName());
@@ -40,13 +40,13 @@ public class CreateAccountResource extends BaseResource {
 
         LOG.fine("Attempting to create account for: " + data.username);
 
-        Transaction txn = datastore.newTransaction();
+        Transaction newTxn = datastore.newTransaction();
         try {
             Key userKey = datastore.newKeyFactory().setKind("User").newKey(data.username);
 
-            Entity existing = txn.get(userKey);
+            Entity existing = newTxn.get(userKey);
             if (existing != null) {
-                txn.rollback();
+                newTxn.rollback();
                 return buildError(ErrorCode.USER_ALREADY_EXISTS);
             }
 
@@ -59,8 +59,8 @@ public class CreateAccountResource extends BaseResource {
                     .set("creationTime", Timestamp.now())
                     .build();
 
-            txn.put(user);
-            txn.commit();
+            newTxn.put(user);
+            newTxn.commit();
 
             LOG.info("Account created for: " + data.username);
 
@@ -71,11 +71,11 @@ public class CreateAccountResource extends BaseResource {
             return buildSuccess(responseData);
 
         } catch (Exception e) {
-            txn.rollback();
+            newTxn.rollback();
             LOG.severe("Error creating account: " + e.getMessage());
             return Response.serverError().build();
         } finally {
-            if (txn.isActive()) txn.rollback();
+            if (newTxn.isActive()) newTxn.rollback();
         }
     }
 }

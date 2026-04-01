@@ -14,7 +14,7 @@ import pt.unl.fct.di.adc.individualapp.util.exceptions.ErrorCode;
 import java.util.logging.Logger;
 
 @Path("/showusers")
-@Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
+@Produces(MediaType.APPLICATION_JSON)
 public class ShowUsersResource extends BaseResource {
 
     private static final Logger LOG = Logger.getLogger(ShowUsersResource.class.getName());

@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 @Path("/deleteaccount")
-@Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
+@Produces(MediaType.APPLICATION_JSON)
 public class DeleteAccountResource extends BaseResource {
 
     private static final Logger LOG = Logger.getLogger(DeleteAccountResource.class.getName());
@@ -75,14 +75,14 @@ public class DeleteAccountResource extends BaseResource {
             tokenKeysToDelete.add(tokenResults.next().getKey());
         }
 
-        Transaction txn = datastore.newTransaction();
+        Transaction newTxn = datastore.newTransaction();
         try {
             if (!tokenKeysToDelete.isEmpty()) {
-                txn.delete(tokenKeysToDelete.toArray(new Key[0]));
+                newTxn.delete(tokenKeysToDelete.toArray(new Key[0]));
             }
 
-            txn.delete(userKey);
-            txn.commit();
+            newTxn.delete(userKey);
+            newTxn.commit();
 
             LOG.info("Account deleted: " + targetUsername + " (tokens removed: " + tokenKeysToDelete.size() + ")");
 
@@ -91,11 +91,11 @@ public class DeleteAccountResource extends BaseResource {
             return buildSuccess(dataObj);
 
         } catch (Exception e) {
-            txn.rollback();
+            newTxn.rollback();
             LOG.severe("Error deleting account: " + e.getMessage());
             return Response.serverError().build();
         } finally {
-            if (txn.isActive()) txn.rollback();
+            if (newTxn.isActive()) newTxn.rollback();
         }
     }
 }

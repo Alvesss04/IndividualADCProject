@@ -14,7 +14,7 @@ import pt.unl.fct.di.adc.individualapp.util.exceptions.ErrorCode;
 import java.util.logging.Logger;
 
 @Path("/changeuserpwd")
-@Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
+@Produces(MediaType.APPLICATION_JSON)
 public class ChangeUserPasswordResource extends BaseResource {
 
     private static final Logger LOG = Logger.getLogger(ChangeUserPasswordResource.class.getName());
@@ -56,6 +56,7 @@ public class ChangeUserPasswordResource extends BaseResource {
             return buildError(ErrorCode.FORBIDDEN);
         }
 
+        // verify old password by comparing SHA-512 hashes
         String storedHash   = user.getString("password");
         String incomingHash = DigestUtils.sha512Hex(data.oldPassword);
 
@@ -63,14 +64,14 @@ public class ChangeUserPasswordResource extends BaseResource {
             return buildError(ErrorCode.INVALID_CREDENTIALS);
         }
 
-        Transaction txn = datastore.newTransaction();
+        Transaction newTxn = datastore.newTransaction();
         try {
             Entity updatedUser = Entity.newBuilder(user)
                     .set("password", DigestUtils.sha512Hex(data.newPassword))
                     .build();
 
-            txn.put(updatedUser);
-            txn.commit();
+            newTxn.put(updatedUser);
+            newTxn.commit();
 
             LOG.info("Password changed for: " + data.username);
 
@@ -79,11 +80,11 @@ public class ChangeUserPasswordResource extends BaseResource {
             return buildSuccess(dataObj);
 
         } catch (Exception e) {
-            txn.rollback();
+            newTxn.rollback();
             LOG.severe("Error changing password: " + e.getMessage());
             return Response.serverError().build();
         } finally {
-            if (txn.isActive()) txn.rollback();
+            if (newTxn.isActive()) newTxn.rollback();
         }
     }
 }

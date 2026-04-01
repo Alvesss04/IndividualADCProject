@@ -5,13 +5,12 @@ public class LoginData {
     public String username;
     public String password;
 
-    public LoginData() {} // empty constructor required by Jersey
+    public LoginData() {}
 
-    // checks if all required fields are present and valid
     public boolean isValid() {
         return isFilledIn(username) &&
                 isFilledIn(password) &&
-                username.contains("@"); // username must be email format
+                username.contains("@");
     }
 
     private boolean isFilledIn(String field) {

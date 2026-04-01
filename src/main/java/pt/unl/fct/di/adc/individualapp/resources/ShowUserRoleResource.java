@@ -13,7 +13,7 @@ import pt.unl.fct.di.adc.individualapp.util.exceptions.ErrorCode;
 import java.util.logging.Logger;
 
 @Path("/showuserrole")
-@Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
+@Produces(MediaType.APPLICATION_JSON)
 public class ShowUserRoleResource extends BaseResource {
 
     private static final Logger LOG = Logger.getLogger(ShowUserRoleResource.class.getName());

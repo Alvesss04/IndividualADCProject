@@ -8,7 +8,6 @@ public abstract class BaseResource {
 
     protected final Gson g = new Gson();
 
-    // { "status": "success", "data": { ... } }
     protected Response buildSuccess(JsonObject data) {
         JsonObject response = new JsonObject();
         response.addProperty("status", "success");
@@ -16,7 +15,6 @@ public abstract class BaseResource {
         return Response.ok(g.toJson(response)).build();
     }
 
-    // { "status": "<errorCode>", "data": "<message>" } — always HTTP 200 as per spec
     protected Response buildError(ErrorCode error) {
         JsonObject response = new JsonObject();
         response.addProperty("status", error.name());

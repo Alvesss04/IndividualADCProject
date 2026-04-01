@@ -13,7 +13,7 @@ import pt.unl.fct.di.adc.individualapp.util.exceptions.ErrorCode;
 import java.util.logging.Logger;
 
 @Path("/logout")
-@Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
+@Produces(MediaType.APPLICATION_JSON)
 public class LogOutResource extends BaseResource {
 
     private static final Logger LOG = Logger.getLogger(LogOutResource.class.getName());

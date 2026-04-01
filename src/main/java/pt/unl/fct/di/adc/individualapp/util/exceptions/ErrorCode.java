@@ -1,6 +1,5 @@
 package pt.unl.fct.di.adc.individualapp.util.exceptions;
 
-// all possible error codes as defined in the spec (section 2.3)
 public enum ErrorCode {
 
     INVALID_CREDENTIALS("9900", "The username-password pair is not valid"),
