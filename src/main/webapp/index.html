@@ -1,30 +1,779 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
-
+<html lang="en">
 <head>
-  <meta http-equiv="content-type" content="application/xhtml+xml; charset=UTF-8" />
-  <title>ADC: My First Web App</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADC API Tester</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #0a0a0f;
+            --bg2: #111118;
+            --bg3: #1a1a24;
+            --bg4: #22222f;
+            --border: rgba(255,255,255,0.07);
+            --border2: rgba(255,255,255,0.12);
+            --accent: #7c6dfa;
+            --accent2: #a594ff;
+            --green: #3ddc84;
+            --red: #ff5f5f;
+            --amber: #ffb347;
+            --text: #e8e8f0;
+            --text2: #8888aa;
+            --text3: #555570;
+            --mono: 'JetBrains Mono', monospace;
+            --sans: 'Syne', sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 13px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* HEADER */
+        header {
+            padding: 2rem 2.5rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(180deg, #0f0f1a 0%, var(--bg) 100%);
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        header h1 {
+            font-family: var(--sans);
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: #fff;
+        }
+        header h1 span { color: var(--accent2); }
+
+        .header-url {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg3);
+            border: 1px solid var(--border2);
+            border-radius: 8px;
+            padding: 6px 12px;
+            flex: 1;
+            max-width: 480px;
+        }
+        .header-url label {
+            color: var(--text3);
+            font-size: 11px;
+            white-space: nowrap;
+        }
+        .header-url input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--accent2);
+            font-family: var(--mono);
+            font-size: 12px;
+            width: 100%;
+        }
+
+        /* TOKEN BAR */
+        .token-bar {
+            padding: 0.75rem 2.5rem;
+            background: var(--bg2);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .token-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: 1px solid var(--border2);
+            font-size: 11px;
+        }
+        .token-badge .dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--text3);
+            flex-shrink: 0;
+        }
+        .token-badge.active .dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
+        .token-badge span { color: var(--text2); max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .token-badge .role-pill {
+            padding: 1px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 700;
+            background: var(--bg4);
+        }
+        .role-USER { color: #7c6dfa; }
+        .role-ADMIN { color: var(--red); }
+        .role-BOFFICER { color: var(--amber); }
+        .token-bar-label { color: var(--text3); font-size: 11px; }
+        .clear-btn {
+            margin-left: auto;
+            background: transparent;
+            border: 1px solid var(--border2);
+            color: var(--text2);
+            font-family: var(--mono);
+            font-size: 11px;
+            padding: 4px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .clear-btn:hover { border-color: var(--red); color: var(--red); }
+
+        /* MAIN LAYOUT */
+        .main {
+            display: grid;
+            grid-template-columns: 260px 1fr 1fr;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            border-right: 1px solid var(--border);
+            padding: 1.5rem 0;
+            overflow-y: auto;
+            background: var(--bg2);
+        }
+        .sidebar-section {
+            padding: 0 1rem 0.5rem;
+            font-size: 10px;
+            color: var(--text3);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 0.25rem;
+            margin-top: 1rem;
+        }
+        .sidebar-section:first-child { margin-top: 0; }
+        .op-btn {
+            width: 100%;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 8px 1rem;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.1s;
+            font-family: var(--mono);
+        }
+        .op-btn:hover { background: var(--bg3); }
+        .op-btn.active { background: var(--bg4); border-right: 2px solid var(--accent); }
+        .op-btn .op-id {
+            font-size: 10px;
+            color: var(--text3);
+            min-width: 28px;
+        }
+        .op-btn .op-name { font-size: 12px; color: var(--text); }
+        .op-btn .op-path { font-size: 10px; color: var(--accent2); margin-top: 2px; }
+        .op-btn .op-auth {
+            margin-left: auto;
+            font-size: 9px;
+            padding: 1px 6px;
+            border-radius: 4px;
+            background: var(--bg4);
+            color: var(--text3);
+            border: 1px solid var(--border);
+        }
+        .op-btn .op-auth.needs-token { color: var(--amber); border-color: rgba(255,179,71,0.3); }
+
+        /* FORM PANEL */
+        .form-panel {
+            padding: 1.5rem;
+            border-right: 1px solid var(--border);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .panel-title {
+            font-family: var(--sans);
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 0.25rem;
+        }
+        .panel-subtitle { font-size: 11px; color: var(--text3); }
+        .method-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 10px;
+            background: rgba(124, 109, 250, 0.15);
+            border: 1px solid rgba(124, 109, 250, 0.4);
+            border-radius: 4px;
+            font-size: 11px;
+            color: var(--accent2);
+            letter-spacing: 0.05em;
+            margin-right: 6px;
+        }
+        .path-display {
+            font-size: 12px;
+            color: var(--text2);
+        }
+
+        .section-label {
+            font-size: 10px;
+            color: var(--text3);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .field-group { display: flex; flex-direction: column; gap: 6px; }
+        .field-row { display: flex; flex-direction: column; gap: 4px; }
+        .field-label { font-size: 11px; color: var(--text2); }
+        .field-hint { font-size: 10px; color: var(--text3); }
+
+        input[type="text"], input[type="password"], textarea, select {
+            background: var(--bg3);
+            border: 1px solid var(--border2);
+            border-radius: 6px;
+            padding: 7px 10px;
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 12px;
+            outline: none;
+            width: 100%;
+            transition: border-color 0.15s;
+        }
+        input[type="text"]:focus, input[type="password"]:focus, textarea:focus, select:focus {
+            border-color: var(--accent);
+        }
+        textarea { resize: vertical; min-height: 60px; }
+        select option { background: var(--bg3); }
+
+        .send-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: var(--accent);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-family: var(--mono);
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s;
+            letter-spacing: 0.03em;
+        }
+        .send-btn:hover { background: var(--accent2); transform: translateY(-1px); }
+        .send-btn:active { transform: translateY(0); }
+        .send-btn.loading { opacity: 0.7; cursor: not-allowed; }
+
+        .token-info-box {
+            background: rgba(255, 179, 71, 0.05);
+            border: 1px solid rgba(255, 179, 71, 0.2);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 11px;
+            color: var(--amber);
+        }
+
+        /* RESPONSE PANEL */
+        .response-panel {
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .response-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .status-badge {
+            padding: 3px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .status-success { background: rgba(61, 220, 132, 0.1); color: var(--green); border: 1px solid rgba(61, 220, 132, 0.3); }
+        .status-error { background: rgba(255, 95, 95, 0.1); color: var(--red); border: 1px solid rgba(255, 95, 95, 0.3); }
+        .status-pending { background: rgba(136, 136, 170, 0.1); color: var(--text3); border: 1px solid var(--border); }
+        .latency-badge {
+            font-size: 11px;
+            color: var(--text3);
+            padding: 3px 10px;
+            background: var(--bg3);
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+        .latency-badge.fast { color: var(--green); }
+        .latency-badge.medium { color: var(--amber); }
+        .latency-badge.slow { color: var(--red); }
+
+        .response-body {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            font-size: 12px;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            word-break: break-all;
+            flex: 1;
+            min-height: 200px;
+            color: var(--text2);
+        }
+        .response-body .json-key { color: var(--accent2); }
+        .response-body .json-string { color: var(--green); }
+        .response-body .json-number { color: var(--amber); }
+        .response-body .json-bool { color: var(--red); }
+        .response-body .json-null { color: var(--text3); }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+            gap: 8px;
+            color: var(--text3);
+        }
+        .empty-state .icon { font-size: 32px; opacity: 0.3; }
+        .empty-state p { font-size: 12px; }
+
+        /* HISTORY */
+        .history-list { display: flex; flex-direction: column; gap: 4px; margin-top: 0.5rem; }
+        .history-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            color: var(--text2);
+            transition: background 0.1s;
+        }
+        .history-item:hover { background: var(--bg3); }
+        .history-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+        .history-time { color: var(--text3); font-size: 10px; margin-left: auto; }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 2px; }
+
+        /* RESPONSIVE */
+        @media (max-width: 900px) {
+            .main { grid-template-columns: 1fr; }
+            .sidebar { border-right: none; border-bottom: 1px solid var(--border); max-height: 200px; }
+            .form-panel { border-right: none; border-bottom: 1px solid var(--border); }
+        }
+    </style>
 </head>
-
 <body>
-  <h1>Welcome to this very simple web application!</h1>
 
-  <table>
-    <tr>
-      <td colspan="2" style="font-weight:bold;">Available Services:</td>
-    </tr>
-    <tr>
-      <td><a href='/rest/utils/hello'>Say Hello!</a></td>
-      <td>(greetings)</td>
-    </tr>
-    <tr>
-      <td><a href='/rest/utils/time'>What time is it?</a></td>
-      <td>(see server time)</td>
-    </tr>
-  </table>
+<header>
+    <div>
+        <h1>ADC <span>API</span> Tester</h1>
+        <p style="font-size: 11px; color: var(--text3); margin-top: 4px;">Individual Evaluation Exercise — REST Operations</p>
+    </div>
+    <div class="header-url">
+        <label>BASE URL</label>
+        <input type="text" id="baseUrl" value="https://individualproject-68681.ew.r.appspot.com/rest" placeholder="https://individualproject-68681.ew.r.appspot.com/rest" />
+    </div>
+</header>
+
+<div class="token-bar">
+    <span class="token-bar-label">Active Token:</span>
+    <div class="token-badge" id="tokenBadge">
+        <div class="dot"></div>
+        <span id="tokenDisplay">No token — login first</span>
+    </div>
+    <button class="clear-btn" onclick="clearToken()">Clear token</button>
+</div>
+
+<div class="main">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-section">Public</div>
+        <button class="op-btn active" onclick="selectOp('createaccount')" id="btn-createaccount">
+            <div><div class="op-id">Op1</div></div>
+            <div><div class="op-name">CreateAccount</div><div class="op-path">/createaccount</div></div>
+            <span class="op-auth">public</span>
+        </button>
+        <button class="op-btn" onclick="selectOp('login')" id="btn-login">
+            <div><div class="op-id">Op2</div></div>
+            <div><div class="op-name">Login</div><div class="op-path">/login</div></div>
+            <span class="op-auth">public</span>
+        </button>
+
+        <div class="sidebar-section">Authenticated</div>
+        <button class="op-btn" onclick="selectOp('showusers')" id="btn-showusers">
+            <div><div class="op-id">Op3</div></div>
+            <div><div class="op-name">ShowUsers</div><div class="op-path">/showusers</div></div>
+            <span class="op-auth needs-token">token</span>
+        </button>
+        <button class="op-btn" onclick="selectOp('deleteaccount')" id="btn-deleteaccount">
+            <div><div class="op-id">Op4</div></div>
+            <div><div class="op-name">DeleteAccount</div><div class="op-path">/deleteaccount</div></div>
+            <span class="op-auth needs-token">token</span>
+        </button>
+        <button class="op-btn" onclick="selectOp('modaccount')" id="btn-modaccount">
+            <div><div class="op-id">Op5</div></div>
+            <div><div class="op-name">ModifyAccount</div><div class="op-path">/modaccount</div></div>
+            <span class="op-auth needs-token">token</span>
+        </button>
+        <button class="op-btn" onclick="selectOp('showauthsessions')" id="btn-showauthsessions">
+            <div><div class="op-id">Op6</div></div>
+            <div><div class="op-name">ShowAuthSessions</div><div class="op-path">/showauthsessions</div></div>
+            <span class="op-auth needs-token">token</span>
+        </button>
+        <button class="op-btn" onclick="selectOp('showuserrole')" id="btn-showuserrole">
+            <div><div class="op-id">Op7</div></div>
+            <div><div class="op-name">ShowUserRole</div><div class="op-path">/showuserrole</div></div>
+            <span class="op-auth needs-token">token</span>
+        </button>
+        <button class="op-btn" onclick="selectOp('changeuserrole')" id="btn-changeuserrole">
+            <div><div class="op-id">Op8</div></div>
+            <div><div class="op-name">ChangeUserRole</div><div class="op-path">/changeuserrole</div></div>
+            <span class="op-auth needs-token">token</span>
+        </button>
+        <button class="op-btn" onclick="selectOp('changeuserpwd')" id="btn-changeuserpwd">
+            <div><div class="op-id">Op9</div></div>
+            <div><div class="op-name">ChangePassword</div><div class="op-path">/changeuserpwd</div></div>
+            <span class="op-auth needs-token">token</span>
+        </button>
+        <button class="op-btn" onclick="selectOp('logout')" id="btn-logout">
+            <div><div class="op-id">Op10</div></div>
+            <div><div class="op-name">Logout</div><div class="op-path">/logout</div></div>
+            <span class="op-auth needs-token">token</span>
+        </button>
+    </div>
+
+    <!-- FORM PANEL -->
+    <div class="form-panel" id="formPanel">
+        <!-- populated by JS -->
+    </div>
+
+    <!-- RESPONSE PANEL -->
+    <div class="response-panel">
+        <div class="section-label">Response</div>
+        <div class="response-header" id="responseHeader">
+            <span class="status-badge status-pending">WAITING</span>
+        </div>
+        <div class="response-body" id="responseBody">
+            <div class="empty-state">
+                <div class="icon">⬡</div>
+                <p>Send a request to see the response</p>
+            </div>
+        </div>
+        <div class="section-label">History</div>
+        <div class="history-list" id="historyList"></div>
+    </div>
+
+</div>
+
+<script>
+    let activeToken = null;
+    let activeOp = 'createaccount';
+    let history = [];
+
+    const ops = {
+        createaccount: {
+            title: 'Create Account', path: '/createaccount', auth: false,
+            fields: [
+                { id: 'username', label: 'Username', hint: 'Must be email format: john@adc.pt', type: 'text', placeholder: 'john@adc.pt' },
+                { id: 'password', label: 'Password', type: 'password', placeholder: '••••••••' },
+                { id: 'confirmation', label: 'Confirm Password', type: 'password', placeholder: '••••••••' },
+                { id: 'phone', label: 'Phone', type: 'text', placeholder: '912345678' },
+                { id: 'address', label: 'Address', type: 'text', placeholder: 'Lisbon, Portugal' },
+                { id: 'role', label: 'Role', type: 'select', options: ['USER', 'BOFFICER', 'ADMIN'] }
+            ],
+            buildBody: (f) => ({ input: { username: f.username, password: f.password, confirmation: f.confirmation, phone: f.phone, address: f.address, role: f.role } })
+        },
+        login: {
+            title: 'Login', path: '/login', auth: false,
+            fields: [
+                { id: 'username', label: 'Username', type: 'text', placeholder: 'john@adc.pt' },
+                { id: 'password', label: 'Password', type: 'password', placeholder: '••••••••' }
+            ],
+            buildBody: (f) => ({ input: { username: f.username, password: f.password } })
+        },
+        showusers: {
+            title: 'Show Users', path: '/showusers', auth: true,
+            fields: [],
+            buildBody: (f, token) => ({ input: {}, token })
+        },
+        deleteaccount: {
+            title: 'Delete Account', path: '/deleteaccount', auth: true,
+            fields: [
+                { id: 'username', label: 'Target Username', type: 'text', placeholder: 'victim@adc.pt', hint: 'ADMIN only — cannot delete own account' }
+            ],
+            buildBody: (f, token) => ({ input: { username: f.username }, token })
+        },
+        modaccount: {
+            title: 'Modify Account', path: '/modaccount', auth: true,
+            fields: [
+                { id: 'username', label: 'Target Username', type: 'text', placeholder: 'john@adc.pt' },
+                { id: 'phone', label: 'New Phone', type: 'text', placeholder: '912345678 (optional)', hint: 'At least one field required' },
+                { id: 'address', label: 'New Address', type: 'text', placeholder: 'Porto, Portugal (optional)' }
+            ],
+            buildBody: (f, token) => {
+                const attrs = {};
+                if (f.phone) attrs.phone = f.phone;
+                if (f.address) attrs.address = f.address;
+                return { input: { username: f.username, attributes: attrs }, token };
+            }
+        },
+        showauthsessions: {
+            title: 'Show Auth Sessions', path: '/showauthsessions', auth: true,
+            fields: [],
+            buildBody: (f, token) => ({ input: {}, token })
+        },
+        showuserrole: {
+            title: 'Show User Role', path: '/showuserrole', auth: true,
+            fields: [
+                { id: 'username', label: 'Target Username', type: 'text', placeholder: 'john@adc.pt', hint: 'BOFFICER cannot check ADMIN role' }
+            ],
+            buildBody: (f, token) => ({ input: { username: f.username }, token })
+        },
+        changeuserrole: {
+            title: 'Change User Role', path: '/changeuserrole', auth: true,
+            fields: [
+                { id: 'username', label: 'Target Username', type: 'text', placeholder: 'john@adc.pt', hint: 'ADMIN only — cannot change own role' },
+                { id: 'newRole', label: 'New Role', type: 'select', options: ['USER', 'BOFFICER', 'ADMIN'] }
+            ],
+            buildBody: (f, token) => ({ input: { username: f.username, newRole: f.newRole }, token })
+        },
+        changeuserpwd: {
+            title: 'Change Password', path: '/changeuserpwd', auth: true,
+            fields: [
+                { id: 'username', label: 'Username', type: 'text', placeholder: 'john@adc.pt', hint: 'Can only change your own password' },
+                { id: 'oldPassword', label: 'Current Password', type: 'password', placeholder: '••••••••' },
+                { id: 'newPassword', label: 'New Password', type: 'password', placeholder: '••••••••' }
+            ],
+            buildBody: (f, token) => ({ input: { username: f.username, oldPassword: f.oldPassword, newPassword: f.newPassword }, token })
+        },
+        logout: {
+            title: 'Logout', path: '/logout', auth: true,
+            fields: [
+                { id: 'username', label: 'Username to logout', type: 'text', placeholder: 'john@adc.pt', hint: 'ADMIN can logout anyone, others only themselves' }
+            ],
+            buildBody: (f, token) => ({ input: { username: f.username }, token })
+        }
+    };
+
+    function selectOp(opId) {
+        document.querySelectorAll('.op-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('btn-' + opId).classList.add('active');
+        activeOp = opId;
+        renderForm(opId);
+    }
+
+    function renderForm(opId) {
+        const op = ops[opId];
+        const panel = document.getElementById('formPanel');
+
+        let html = `
+    <div>
+      <div class="panel-title">${op.title}</div>
+      <div class="panel-subtitle" style="margin-top: 6px;">
+        <span class="method-pill">POST</span>
+        <span class="path-display">${document.getElementById('baseUrl').value}${op.path}</span>
+      </div>
+    </div>
+  `;
+
+        if (op.auth) {
+            const tokenStatus = activeToken
+                ? `<span style="color: var(--green);">Token active: ${activeToken.tokenId.substring(0, 18)}...</span>`
+                : `<span style="color: var(--red);">No token — login first (Op2)</span>`;
+            html += `<div class="token-info-box">${tokenStatus}</div>`;
+        }
+
+        if (op.fields.length > 0) {
+            html += `<div class="section-label">Input</div><div class="field-group">`;
+            for (const f of op.fields) {
+                html += `<div class="field-row">
+        <label class="field-label" for="f_${f.id}">${f.label}</label>`;
+                if (f.type === 'select') {
+                    html += `<select id="f_${f.id}">`;
+                    for (const opt of f.options) html += `<option value="${opt}">${opt}</option>`;
+                    html += `</select>`;
+                } else if (f.type === 'password') {
+                    html += `<input type="password" id="f_${f.id}" placeholder="${f.placeholder || ''}">`;
+                } else {
+                    html += `<input type="text" id="f_${f.id}" placeholder="${f.placeholder || ''}">`;
+                }
+                if (f.hint) html += `<span class="field-hint">${f.hint}</span>`;
+                html += `</div>`;
+            }
+            html += `</div>`;
+        } else {
+            html += `<p style="font-size: 11px; color: var(--text3);">No input fields — token only.</p>`;
+        }
+
+        html += `<button class="send-btn" onclick="sendRequest()" id="sendBtn">
+    <span>&#9654;</span> Send Request
+  </button>`;
+
+        panel.innerHTML = html;
+    }
+
+    async function sendRequest() {
+        const op = ops[activeOp];
+        const base = document.getElementById('baseUrl').value.replace(/\/$/, '');
+        const url = base + op.path;
+
+        const fields = {};
+        for (const f of op.fields) {
+            const el = document.getElementById('f_' + f.id);
+            if (el) fields[f.id] = el.value;
+        }
+
+        const tokenObj = activeToken ? {
+            tokenId: activeToken.tokenId,
+            username: activeToken.username,
+            role: activeToken.role,
+            issuedAt: activeToken.issuedAt,
+            expiresAt: activeToken.expiresAt
+        } : null;
+
+        const body = op.buildBody(fields, tokenObj);
+        const bodyStr = JSON.stringify(body, null, 2);
+
+        const btn = document.getElementById('sendBtn');
+        btn.classList.add('loading');
+        btn.textContent = 'Sending...';
+
+        const start = performance.now();
+
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            const elapsed = Math.round(performance.now() - start);
+            const data = await res.json();
+            showResponse(data, elapsed, activeOp);
+
+            if (activeOp === 'login' && data.status === 'success' && data.data && data.data.token) {
+                activeToken = data.data.token;
+                updateTokenBar();
+            }
+            if (activeOp === 'logout' && data.status === 'success') {
+                activeToken = null;
+                updateTokenBar();
+            }
+
+            addHistory(activeOp, data.status === 'success', elapsed);
+
+        } catch (err) {
+            showError(err.message);
+            addHistory(activeOp, false, 0);
+        } finally {
+            btn.classList.remove('loading');
+            btn.innerHTML = '<span>&#9654;</span> Send Request';
+        }
+    }
+
+    function showResponse(data, elapsed, opId) {
+        const header = document.getElementById('responseHeader');
+        const body = document.getElementById('responseBody');
+
+        const isSuccess = data.status === 'success';
+        const latencyClass = elapsed < 400 ? 'fast' : elapsed < 800 ? 'medium' : 'slow';
+
+        header.innerHTML = `
+    <span class="status-badge ${isSuccess ? 'status-success' : 'status-error'}">${isSuccess ? 'SUCCESS' : data.status}</span>
+    <span class="latency-badge ${latencyClass}">${elapsed} ms</span>
+    <span style="font-size: 11px; color: var(--text3);">POST /${opId}</span>
+  `;
+
+        body.innerHTML = syntaxHighlight(JSON.stringify(data, null, 2));
+    }
+
+    function showError(msg) {
+        document.getElementById('responseHeader').innerHTML = `<span class="status-badge status-error">NETWORK ERROR</span>`;
+        document.getElementById('responseBody').textContent = 'Error: ' + msg + '\n\nMake sure your server is running and the base URL is correct.';
+    }
+
+    function syntaxHighlight(json) {
+        return json
+            .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?)/g, (match) => {
+                if (/:$/.test(match)) return `<span class="json-key">${match}</span>`;
+                return `<span class="json-string">${match}</span>`;
+            })
+            .replace(/\b(\d+)\b/g, '<span class="json-number">$1</span>')
+            .replace(/\btrue\b/g, '<span class="json-bool">true</span>')
+            .replace(/\bfalse\b/g, '<span class="json-bool">false</span>')
+            .replace(/\bnull\b/g, '<span class="json-null">null</span>');
+    }
+
+    function updateTokenBar() {
+        const badge = document.getElementById('tokenBadge');
+        const display = document.getElementById('tokenDisplay');
+        if (activeToken) {
+            badge.classList.add('active');
+            display.innerHTML = `${activeToken.username} <span class="role-pill role-${activeToken.role}">${activeToken.role}</span>`;
+        } else {
+            badge.classList.remove('active');
+            display.textContent = 'No token — login first';
+        }
+        renderForm(activeOp);
+    }
+
+    function clearToken() {
+        activeToken = null;
+        updateTokenBar();
+    }
+
+    function addHistory(opId, success, elapsed) {
+        const now = new Date();
+        const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0') + ':' + now.getSeconds().toString().padStart(2,'0');
+        history.unshift({ opId, success, elapsed, time });
+        if (history.length > 8) history.pop();
+        const list = document.getElementById('historyList');
+        list.innerHTML = history.map(h => `
+    <div class="history-item" onclick="selectOp('${h.opId}')">
+      <div class="history-dot" style="background: ${h.success ? 'var(--green)' : 'var(--red)'}"></div>
+      <span style="color: var(--text2);">/${h.opId}</span>
+      ${h.elapsed ? `<span style="font-size: 10px; color: var(--text3);">${h.elapsed}ms</span>` : ''}
+      <span class="history-time">${h.time}</span>
+    </div>
+  `).join('');
+    }
+
+    document.getElementById('baseUrl').addEventListener('input', () => renderForm(activeOp));
+
+    renderForm('createaccount');
+</script>
 </body>
-<footer>
-  Copyright: ADC-PEI, FCT NOVA 2026
-</footer>
-
 </html>

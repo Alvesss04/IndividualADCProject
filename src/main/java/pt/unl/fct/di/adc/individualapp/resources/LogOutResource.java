@@ -10,6 +10,8 @@ import pt.unl.fct.di.adc.individualapp.util.Role;
 import pt.unl.fct.di.adc.individualapp.util.TokenValidator;
 import pt.unl.fct.di.adc.individualapp.util.exceptions.ErrorCode;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 @Path("/logout")
@@ -35,7 +37,6 @@ public class LogOutResource extends BaseResource {
             return buildError(ErrorCode.INVALID_INPUT);
         }
 
-
         TokenValidator tv = TokenValidator.validate(request.token, datastore);
         if (!tv.isOk()) {
             return buildError(tv.error);
@@ -53,9 +54,30 @@ public class LogOutResource extends BaseResource {
             return buildError(ErrorCode.FORBIDDEN);
         }
 
-        datastore.delete(tv.tokenKey);
+        if (tv.token.username.equals(targetUsername)) {
+            datastore.delete(tv.tokenKey);
+            LOG.info(targetUsername + " logged out their own session");
 
-        LOG.info("User " + targetUsername + " logged out successfully");
+        } else {
+            Query<Entity> tokenQuery = Query.newEntityQueryBuilder()
+                    .setKind("Token")
+                    .setFilter(StructuredQuery.PropertyFilter.eq("username", targetUsername))
+                    .build();
+
+            QueryResults<Entity> tokenResults = datastore.run(tokenQuery);
+            List<Key> tokenKeysToDelete = new ArrayList<>();
+            while (tokenResults.hasNext()) {
+                tokenKeysToDelete.add(tokenResults.next().getKey());
+            }
+
+            if (tokenKeysToDelete.isEmpty()) {
+                return buildError(ErrorCode.INVALID_TOKEN);
+            }
+
+            datastore.delete(tokenKeysToDelete.toArray(new Key[0]));
+            LOG.info("ADMIN " + tv.token.username + " logged out " + targetUsername
+                    + " (" + tokenKeysToDelete.size() + " sessions removed)");
+        }
 
         JsonObject dataObj = new JsonObject();
         dataObj.addProperty("message", "Logout successful");
